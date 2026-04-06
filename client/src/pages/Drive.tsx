@@ -32,8 +32,8 @@ export default function Drive() {
   const navigate = useNavigate();
 
   const [listing, { refetch }] = createResource(
-    () => params.id ?? null,
-    async (folderId) => {
+    () => ({ folderId: params.id }),
+    async ({ folderId }) => {
       const qs = folderId ? `?folderId=${encodeURIComponent(folderId)}` : "";
       return api.get<DriveListing>(`/drive/list${qs}`);
     }

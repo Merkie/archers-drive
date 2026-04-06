@@ -9,6 +9,7 @@ import {
   publicUrlFor,
 } from "../lib/r2.js";
 import { isValidName } from "../lib/paths.js";
+import { resolveUploadMime } from "../lib/mime.js";
 
 const router = Router();
 router.use(requireSession);
@@ -207,6 +208,10 @@ router.post(
       return;
     }
 
+    // Browsers often leave the mime blank for .md / .log / .yml etc, so we
+    // fall back to extension-based detection before persisting.
+    const mimeType = resolveUploadMime(req.file.mimetype, originalName);
+
     // Reserve the DB row first; the storageKey embeds the new file's cuid for uniqueness.
     try {
       const created = await prisma.file.create({
@@ -215,14 +220,14 @@ router.post(
           folderId,
           name: originalName,
           size: req.file.size,
-          mimeType: req.file.mimetype || "application/octet-stream",
+          mimeType,
           // Temporary placeholder; rewritten below using the row's id.
           storageKey: `pending/${Date.now()}/${originalName}`,
         },
       });
 
       const storageKey = `${created.id}/${originalName}`;
-      await uploadBuffer(storageKey, req.file.buffer, created.mimeType);
+      await uploadBuffer(storageKey, req.file.buffer, mimeType);
       const updated = await prisma.file.update({
         where: { id: created.id },
         data: { storageKey },

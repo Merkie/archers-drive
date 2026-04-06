@@ -14,6 +14,7 @@ import {
   normalizePath,
   parsePath,
 } from "../lib/paths.js";
+import { guessMimeFromName } from "../lib/mime.js";
 import {
   resolveFolder,
   resolveOrCreateFolder,
@@ -418,29 +419,5 @@ router.post("/folders/create", requireApiKey({ scope: "write" }), async (req: Re
   await resolveOrCreateFolder(userId, segments);
   res.status(201).json({ ok: true, path: parsed.data.path });
 });
-
-// Naive ext → mime guesser, used for /v1/files/write when the caller omits mimeType.
-function guessMimeFromName(name: string): string {
-  const ext = name.toLowerCase().split(".").pop() ?? "";
-  const map: Record<string, string> = {
-    txt: "text/plain",
-    md: "text/markdown",
-    csv: "text/csv",
-    json: "application/json",
-    html: "text/html",
-    xml: "application/xml",
-    pdf: "application/pdf",
-    png: "image/png",
-    jpg: "image/jpeg",
-    jpeg: "image/jpeg",
-    gif: "image/gif",
-    webp: "image/webp",
-    svg: "image/svg+xml",
-    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  };
-  return map[ext] ?? "application/octet-stream";
-}
 
 export default router;
