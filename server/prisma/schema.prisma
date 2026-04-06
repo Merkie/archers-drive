@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  folders Folder[]
+  files   File[]
+  apiKeys ApiKey[]
+}
+
+model Folder {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // null parentId == root-level folder for that user
+  parentId String?
+  parent   Folder?  @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children Folder[] @relation("FolderTree")
+
+  files File[]
+
+  @@unique([userId, parentId, name])
+  @@index([userId])
+  @@index([parentId])
+}
+
+model File {
+  id        String   @id @default(cuid())
+  name      String
+  size      Int
+  mimeType  String
+  // Object key inside the R2 bucket (NOT the public CDN url).
+  storageKey String  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // null folderId == file lives in the user's drive root
+  folderId String?
+  folder   Folder? @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, folderId, name])
+  @@index([userId])
+  @@index([folderId])
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  // Display label set by the user, e.g. "my-agent-prod"
+  label      String
+  // First 12 chars of the raw token, shown in the UI so users can recognize keys.
+  // The full token is never stored — only its hash.
+  prefix     String
+  // Argon2 hash of the full raw token.
+  tokenHash  String
+  // "read" or "write"
+  scope      String
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([prefix])
+}

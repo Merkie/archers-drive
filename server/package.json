@@ -1,0 +1,38 @@
+{
+  "name": "archers-drive-server",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "prisma generate && tsx watch src/index.ts",
+    "build": "prisma generate && tsc",
+    "start": "node dist/index.js",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1019.0",
+    "@aws-sdk/s3-request-presigner": "^3.1019.0",
+    "@prisma/client": "^6.19.2",
+    "argon2": "^0.41.1",
+    "cloudconvert": "^3.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "cuid": "^3.0.0",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.15.0",
+    "prisma": "^6.19.2",
+    "tsx": "^4.7.3",
+    "typescript": "^5.4.5"
+  }
+}
